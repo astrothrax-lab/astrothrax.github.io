@@ -768,11 +768,14 @@ footer {
 </footer>
 
 <script>
-// Page navigation
-function showPage(id) {
+// Page navigation with browser history
+function showPage(id, pushHistory) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-' + id).classList.add('active');
   window.scrollTo(0, 0);
+  if (pushHistory !== false) {
+    history.pushState({ page: id }, '', '#' + id);
+  }
   // Re-trigger reveals
   setTimeout(() => {
     document.querySelectorAll('.page.active .reveal:not(.visible)').forEach(el => {
@@ -780,6 +783,25 @@ function showPage(id) {
     });
   }, 100);
 }
+
+// Handle browser back/forward buttons
+window.addEventListener('popstate', function(e) {
+  if (e.state && e.state.page) {
+    showPage(e.state.page, false);
+  } else {
+    showPage('main', false);
+  }
+});
+
+// Load correct page if URL has a hash
+(function() {
+  const hash = window.location.hash.replace('#', '');
+  if (hash && document.getElementById('page-' + hash)) {
+    showPage(hash, false);
+  } else {
+    history.replaceState({ page: 'main' }, '', '#main');
+  }
+})();
 
 // Alien cursor + rainbow trail
 (function(){
